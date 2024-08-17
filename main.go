@@ -134,13 +134,17 @@ func startWebServer() {
 }
 
 func main() {
-    bot, err := tgbotapi.NewBotAPI("YOUR_TELEGRAM_BOT_TOKEN")
+    bot, err := tgbotapi.NewBotAPI("6399406174:AAG3is8PpZhfBuIya_e_LwV0YTxiX240HcY")
     if err != nil {
         log.Panic(err)
     }
 
     bot.Debug = false
-
+log.Println("Starting Telegram bot...")
+bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_BOT_TOKEN"))
+if err != nil {
+    log.Fatalf("Error initializing bot: %v", err)
+}
     log.Printf("Authorized on account %s", bot.Self.UserName)
 
     u := tgbotapi.NewUpdate(0)
