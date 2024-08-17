@@ -141,11 +141,7 @@ func main() {
 
     bot.Debug = false
 log.Println("Starting Telegram bot...")
-bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_BOT_TOKEN"))
-if err != nil {
-    log.Fatalf("Error initializing bot: %v", err)
-}
-    log.Printf("Authorized on account %s", bot.Self.UserName)
+log.Printf("Authorized on account %s", bot.Self.UserName)
 
     u := tgbotapi.NewUpdate(0)
     u.Timeout = 60
