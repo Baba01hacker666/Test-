@@ -89,59 +89,15 @@ func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, wg *sync.WaitG
     }
 }
 
-func handleWebRequest(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        http.ServeFile(w, r, "index.html")
-        return
-    }
-
-    promptType := r.FormValue("promptType")
-    customDescription := r.FormValue("customDescription")
-
-    var description string
-    switch promptType {
-    case "landscape":
-        description = "a beautiful landscape"
-    case "portrait":
-        description = "a detailed portrait"
-    case "abstract":
-        description = "an abstract composition"
-    default:
-        description = customDescription
-    }
-
-    if description == "" {
-        http.Error(w, "Description is required", http.StatusBadRequest)
-        return
-    }
-
-    imageURL := generateImageURL(description)
-    imageData, err := downloadImage(imageURL)
-    if err != nil {
-        log.Printf("Error downloading image: %v", err)
-        http.Error(w, "Error generating image", http.StatusInternalServerError)
-        return
-    }
-
-    w.Header().Set("Content-Type", "image/jpeg")
-    w.Write(imageData)
-}
-
-func startWebServer() {
-    http.HandleFunc("/", handleWebRequest)
-    log.Println("Starting web server on :8080")
-    log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
 func main() {
-    bot, err := tgbotapi.NewBotAPI("6399406174:AAG3is8PpZhfBuIya_e_LwV0YTxiX240HcY")
+    bot, err := tgbotapi.NewBotAPI("YOUR_TELEGRAM_BOT_TOKEN")
     if err != nil {
         log.Panic(err)
     }
 
     bot.Debug = false
-log.Println("Starting Telegram bot...")
-log.Printf("Authorized on account %s", bot.Self.UserName)
+
+    log.Printf("Authorized on account %s", bot.Self.UserName)
 
     u := tgbotapi.NewUpdate(0)
     u.Timeout = 60
@@ -149,8 +105,6 @@ log.Printf("Authorized on account %s", bot.Self.UserName)
     updates := bot.GetUpdatesChan(u)
 
     var wg sync.WaitGroup
-
-    go startWebServer()
 
     for update := range updates {
         if update.Message == nil {
