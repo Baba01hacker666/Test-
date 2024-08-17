@@ -66,7 +66,7 @@ func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, wg *sync.WaitG
     log.Printf("[%s] %s", update.Message.From.UserName, description)
 
     msg := tgbotapi.NewMessage(chatID, "Generating your image...")
-    sentMsg, _ := bot.Send(msg) 
+    sentMsg, _ := bot.Send(msg)
 
     imageURL := generateImageURL(description)
 
@@ -77,19 +77,64 @@ func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, wg *sync.WaitG
         bot.Send(editMsg)
         return
     }
-err = sendImage(bot, chatID, imageData)
+
+    err = sendImage(bot, chatID, imageData)
     if err != nil {
         log.Printf("Error sending image: %v", err)
     } else {
-        // Correct way to delete the "Generating..." message:
         _, err = bot.Request(tgbotapi.DeleteMessageConfig{ChatID: chatID, MessageID: sentMsg.MessageID})
         if err != nil {
-            log.Printf("Error deleting message: %v", err) // Log any potential errors
+            log.Printf("Error deleting message: %v", err)
         }
     }
 }
+
+func handleWebRequest(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        http.ServeFile(w, r, "index.html")
+        return
+    }
+
+    promptType := r.FormValue("promptType")
+    customDescription := r.FormValue("customDescription")
+
+    var description string
+    switch promptType {
+    case "landscape":
+        description = "a beautiful landscape"
+    case "portrait":
+        description = "a detailed portrait"
+    case "abstract":
+        description = "an abstract composition"
+    default:
+        description = customDescription
+    }
+
+    if description == "" {
+        http.Error(w, "Description is required", http.StatusBadRequest)
+        return
+    }
+
+    imageURL := generateImageURL(description)
+    imageData, err := downloadImage(imageURL)
+    if err != nil {
+        log.Printf("Error downloading image: %v", err)
+        http.Error(w, "Error generating image", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "image/jpeg")
+    w.Write(imageData)
+}
+
+func startWebServer() {
+    http.HandleFunc("/", handleWebRequest)
+    log.Println("Starting web server on :8080")
+    log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
 func main() {
-    bot, err := tgbotapi.NewBotAPI("6399406174:AAG3is8PpZhfBuIya_e_LwV0YTxiX240HcY") 
+    bot, err := tgbotapi.NewBotAPI("YOUR_TELEGRAM_BOT_TOKEN")
     if err != nil {
         log.Panic(err)
     }
@@ -99,11 +144,13 @@ func main() {
     log.Printf("Authorized on account %s", bot.Self.UserName)
 
     u := tgbotapi.NewUpdate(0)
-    u.Timeout = 60 
+    u.Timeout = 60
 
     updates := bot.GetUpdatesChan(u)
 
     var wg sync.WaitGroup
+
+    go startWebServer()
 
     for update := range updates {
         if update.Message == nil {
@@ -111,10 +158,10 @@ func main() {
         }
 
         wg.Add(1)
-        go processMessage(bot, update, &wg) 
+        go processMessage(bot, update, &wg)
 
-        time.Sleep(100 * time.Millisecond) 
+        time.Sleep(100 * time.Millisecond)
     }
 
-    wg.Wait() 
+    wg.Wait()
 }
