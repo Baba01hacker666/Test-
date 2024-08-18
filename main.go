@@ -97,11 +97,14 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-
-	http.HandleFunc("/", HelloHandler)
-
-	log.Println("Listening on port", port)
-    
+	go func() {
+        http.HandleFunc("/", HelloHandler)
+        log.Println("Listening on port", port)
+        if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
+            log.Fatalf("Failed to start server: %v", err)
+        }
+    }()
+	
     bot, err := tgbotapi.NewBotAPI("6399406174:AAG3is8PpZhfBuIya_e_LwV0YTxiX240HcY")
     if err != nil {
         log.Panic(err)
@@ -130,5 +133,4 @@ func main() {
     }
 
     wg.Wait()
-    log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
