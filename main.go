@@ -56,7 +56,9 @@ func sendImage(bot *tgbotapi.BotAPI, chatID int64, imageData []byte) error {
     _, err = bot.Send(photo)
     return err
 }
-
+func HelloHandler(w http.ResponseWriter, _ *http.Request) {
+	fmt.Fprintf(w, "Hello from Koyeb\n")
+}
 func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, wg *sync.WaitGroup) {
     defer wg.Done()
 
@@ -90,6 +92,17 @@ func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, wg *sync.WaitG
 }
 
 func main() {
+    port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "8080"
+	}
+
+	http.HandleFunc("/", HelloHandler)
+
+	log.Println("Listening on port", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+    
     bot, err := tgbotapi.NewBotAPI("YOUR_TELEGRAM_BOT_TOKEN")
     if err != nil {
         log.Panic(err)
