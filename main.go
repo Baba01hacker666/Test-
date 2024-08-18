@@ -56,8 +56,8 @@ func sendImage(bot *tgbotapi.BotAPI, chatID int64, imageData []byte) error {
     _, err = bot.Send(photo)
     return err
 }
-func HelloHandler(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprintf(w, "Hello from Koyeb\n")
+func HelloHandler(w http.ResponseWriter, r *http.Request) {
+    http.ServeFile(w, r, "index.html")
 }
 func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, wg *sync.WaitGroup) {
     defer wg.Done()
