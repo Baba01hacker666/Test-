@@ -57,7 +57,24 @@ func sendImage(bot *tgbotapi.BotAPI, chatID int64, imageData []byte) error {
     return err
 }
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
-    http.ServeFile(w, r, "index.html")
+    if r.Method == http.MethodGet {
+        http.ServeFile(w, r, "index.html")
+    } else if r.Method == http.MethodPost {
+        r.ParseForm()
+        description := r.FormValue("description")
+        
+        imageURL := generateImageURL(description)
+        imageData, err := downloadImage(imageURL)
+        if err != nil {
+            http.Error(w, "Failed to generate image", http.StatusInternalServerError)
+            return
+        }
+
+        w.Header().Set("Content-Type", "image/jpeg")
+        w.Write(imageData)
+    } else {
+        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+    }
 }
 func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, wg *sync.WaitGroup) {
     defer wg.Done()
