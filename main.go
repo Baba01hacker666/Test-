@@ -103,7 +103,7 @@ func main() {
 	log.Println("Listening on port", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
     
-    bot, err := tgbotapi.NewBotAPI("YOUR_TELEGRAM_BOT_TOKEN")
+    bot, err := tgbotapi.NewBotAPI("6399406174:AAG3is8PpZhfBuIya_e_LwV0YTxiX240HcY")
     if err != nil {
         log.Panic(err)
     }
